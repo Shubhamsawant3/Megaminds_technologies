@@ -1,0 +1,157 @@
+﻿@model Megaminds_technologies.Models.User
+@{ 
+    Layout = null;
+}
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Edit</title>
+</head>
+<body>
+    <form action="@Url.Action("Edit", "User")" id="userEditForm" method="post" enctype="multipart/form-data">
+
+        <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+
+        <div class="form-group">
+            <label for="Name">Name</label>
+            <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" value="@Model.Name">
+            <span id="nameError" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Email">Email</label>
+            <input type="text" id="email" name="email" class="form-control" placeholder="Enter your email" value="@Model.Email">
+            <span id="emailError" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Address">Address</label>
+            <input type="text" id="address" name="address" class="form-control" placeholder="Enter your address" value="@Model.Address">
+            <span id="addressError" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="PhoneNumber">Phone Number</label>
+            <input type="text" id="phone" name="phone" class="form-control" placeholder="Enter your phone number" value="@Model.Phone">
+            <span id="phoneError" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="State">State</label>
+            @Html.DropDownList("StateId", (IEnumerable<SelectListItem>)ViewBag.StatesBag, "Select State", new { @class = "form-control", id = "StateId" })
+        </div>
+
+        <div class="form-group">
+            <label for="City">City</label>
+            <select id="CityId" name="CityId" class="form-control">
+                <option value="">Select City</option>
+                @foreach (var city in ViewBag.CitiesBag)
+                {
+                    <option value="@city.CityId" @(city.CityId == Model.CityId ? "selected" : "")>@city.CityName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <input type="checkbox" id="checkBoxId" name="check" value="" />
+            <label for="checkBoxId">I agree to the terms and conditions</label>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" id="submitButton" value="Save Changes" class="btn btn-success" disabled />
+        </div>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Populate cities based on the selected state
+            $('#StateId').change(function () {
+            var stateId = $(this).val();
+
+            if (stateId != "") {
+                $.ajax({
+                    url: '@Url.Action("GetCities", "User")',
+                    type: 'POST',
+                    data: { stateId: stateId },
+                    success: function (cities) {
+                        var cityDropdown = $('#CityId');
+                        cityDropdown.empty(); // Clear the current city options
+                        cityDropdown.append('<option value="">Select City</option>');
+
+                        // Populate city dropdown with the returned data
+                        $.each(cities, function (i, city) {
+                            cityDropdown.append('<option value="' + city.CityId + '">' + city.CityName + '</option>');
+                        });
+                    },
+                    error: function (error) {
+                        console.log("Error fetching cities: " + error);
+                    }
+                });
+            }
+            else {
+                $('#CityId').empty(); // Clear city dropdown if no state is selected
+                $('#CityId').append('<option value="">Select City</option>');
+            }
+            });
+
+            // Validate the form fields
+            $('#userEditForm').submit(function (e) {
+                var isValid = true;
+                $('.text-danger').text('');
+
+                // Name validations
+                var name = $('#name').val().trim();
+                var nameRegex = /^[a-zA-Z\s]+$/;
+                if (name === "") {
+                    $('#nameError').text('Name is required.');
+                    isValid = false;
+                } else if (!nameRegex.test(name)) {
+                    $('#nameError').text('Name can only contain letters and spaces.');
+                    isValid = false;
+                }
+
+                // Email validation
+                var email = $('#email').val().trim();
+                var emailRegex = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (email === "") {
+                    $('#emailError').text('Email is required.');
+                    isValid = false;
+                } else if (!emailRegex.test(email)) {
+                    $('#emailError').text('Please enter a valid email.');
+                    isValid = false;
+                }
+
+                // Address validation
+                var address = $('#address').val().trim();
+                if (address === "") {
+                    $('#addressError').text('Address is required.');
+                    isValid = false;
+                }
+
+                // Phone number validation (must be 10 digits)
+                var phone = $('#phone').val().trim();
+                var phoneRegex = /^\d{10}$/;
+                if (phone === "") {
+                    $('#phoneError').text('Phone number is required.');
+                    isValid = false;
+                } else if (!phoneRegex.test(phone)) {
+                    $('#phoneError').text('Phone number must be 10 digits.');
+                    isValid = false;
+                }
+
+                // Prevent form submission if validation fails
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            // Enable/Disable submit button based on checkbox
+            var checkBox = document.getElementById('checkBoxId');
+            var submitButton = document.getElementById('submitButton');
+            checkBox.addEventListener('change', function () {
+                submitButton.disabled = !checkBox.checked;
+            });
+        });
+    </script>
+</body>
+</html>

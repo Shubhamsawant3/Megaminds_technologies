@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing.Printing;
@@ -10,17 +11,12 @@ namespace Megaminds_technologies.Models
 {
 	public class BALUser
 	{
-		SqlConnection conn = new SqlConnection("MegaMindsCrudDB");
-		private readonly User _user;
-		public BALUser(User objUser)
-		{
-			_user = objUser;
-		}
-
+		static string _connectionString = ConfigurationManager.ConnectionStrings["MegaMindsCrudDB"].ConnectionString;
+		User _user = new User();
 		public DataSet List()
 		{
-			conn.Open();
-			SqlCommand cmd = new SqlCommand("UserMindsProcedure", conn);
+			SqlConnection conn = new SqlConnection(_connectionString); 
+			SqlCommand cmd = new SqlCommand("UserMindsProcedure",conn);
 			cmd.CommandType = CommandType.StoredProcedure;
 			cmd.Parameters.AddWithValue("@Flag","ListData");
 			SqlDataAdapter adpt  = new SqlDataAdapter(cmd);
@@ -30,8 +26,8 @@ namespace Megaminds_technologies.Models
 		}
 		public void Savedata()
 		{
-			conn.Open();
-			SqlCommand cmd = new SqlCommand("UserMindsProcedure", conn);
+			SqlConnection conn = new SqlConnection(_connectionString);
+			SqlCommand cmd = new SqlCommand("UserMindsProcedure",conn);
 			cmd.CommandType =CommandType.StoredProcedure;
 			cmd.Parameters.AddWithValue("@Flag","Insertdata");
 			cmd.Parameters.AddWithValue("@Name", _user.Name);
@@ -41,7 +37,6 @@ namespace Megaminds_technologies.Models
 			cmd.Parameters.AddWithValue("@State", _user.State);
 			cmd.Parameters.AddWithValue("@Flag", _user.City);
 			cmd.ExecuteNonQuery();
-			conn.Close();
 		}
 	}
 }
